@@ -29,20 +29,20 @@ export default function App() {
     }
     const elem = document.getElementById('reservation');
     if (elem) {
-      const navbarOffset = 75;
+      const navbarOffset = 85;
       const elementPosition = elem.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.scrollY - navbarOffset;
-      window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+      window.scrollTo({ top: Math.max(0, offsetPosition), behavior: 'smooth' });
     }
   };
 
   const scrollToEmergency = () => {
     const elem = document.getElementById('urgences');
     if (elem) {
-      const navbarOffset = 75;
+      const navbarOffset = 85;
       const elementPosition = elem.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.scrollY - navbarOffset;
-      window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+      window.scrollTo({ top: Math.max(0, offsetPosition), behavior: 'smooth' });
     }
   };
 

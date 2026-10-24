@@ -9,7 +9,7 @@ export const EmergencySection: React.FC = () => {
   )}`;
 
   return (
-    <section id="urgences" className="scroll-mt-20 py-16 bg-red-50/60 relative overflow-hidden border-b border-red-100">
+    <section id="urgences" className="scroll-mt-24 py-16 bg-red-50/60 relative overflow-hidden border-b border-red-100">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="rounded-3xl bg-white border-2 border-red-200 shadow-xl overflow-hidden p-6 sm:p-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">

@@ -304,7 +304,7 @@ export const BookingSection: React.FC<BookingSectionProps> = ({
   };
 
   return (
-    <section id="reservation" className="scroll-mt-20 py-20 bg-gradient-to-b from-white via-slate-50 to-teal-50/40 relative">
+    <section id="reservation" className="scroll-mt-24 py-20 bg-gradient-to-b from-white via-slate-50 to-teal-50/40 relative">
       <div className="max-w-4xl mx-auto px-4 sm:px-6">
         {/* Header */}
         <div className="text-center max-w-2xl mx-auto mb-10">

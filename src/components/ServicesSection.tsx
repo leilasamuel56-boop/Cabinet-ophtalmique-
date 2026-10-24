@@ -15,7 +15,7 @@ interface ServicesSectionProps {
 
 export const ServicesSection: React.FC<ServicesSectionProps> = ({ onSelectService }) => {
   return (
-    <section id="services" className="scroll-mt-20 py-20 bg-slate-50 relative">
+    <section id="services" className="scroll-mt-24 py-20 bg-slate-50 relative">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         {/* Section Header */}
         <div className="max-w-2xl text-left mb-12">

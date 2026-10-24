@@ -24,7 +24,7 @@ export const PracticalInfoSection: React.FC = () => {
   }, []);
 
   return (
-    <section id="infos" className="scroll-mt-20 py-20 bg-white">
+    <section id="infos" className="scroll-mt-24 py-20 bg-white">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="text-left max-w-2xl mb-12">
           <span className="text-xs font-bold uppercase tracking-wider text-teal-700">

@@ -35,7 +35,7 @@ export const HowItWorks: React.FC<HowItWorksProps> = ({ onStartBooking }) => {
   ];
 
   return (
-    <section id="demarche" className="scroll-mt-20 py-20 bg-white border-y border-slate-100">
+    <section id="demarche" className="scroll-mt-24 py-20 bg-white border-y border-slate-100">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="text-center max-w-2xl mx-auto mb-14">
           <span className="text-xs font-bold uppercase tracking-wider text-teal-700">

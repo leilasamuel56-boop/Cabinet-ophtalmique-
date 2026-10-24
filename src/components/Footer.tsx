@@ -43,11 +43,86 @@ export const Footer: React.FC<FooterProps> = ({ onOpenAdmin }) => {
               Services Principaux
             </h4>
             <ul className="space-y-1.5 text-xs text-slate-400">
-              <li>Consultations ophtalmologiques</li>
-              <li>Chirurgie de la cataracte</li>
-              <li>Dépistage du glaucome</li>
-              <li>Fond d'œil diabète</li>
-              <li>Urgences oculaires</li>
+              <li>
+                <button
+                  onClick={() => {
+                    const el = document.getElementById('services');
+                    if (el) {
+                      window.scrollTo({
+                        top: Math.max(0, el.getBoundingClientRect().top + window.scrollY - 85),
+                        behavior: 'smooth',
+                      });
+                    }
+                  }}
+                  className="hover:text-teal-400 transition-colors text-left cursor-pointer"
+                >
+                  Consultations ophtalmologiques
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => {
+                    const el = document.getElementById('services');
+                    if (el) {
+                      window.scrollTo({
+                        top: Math.max(0, el.getBoundingClientRect().top + window.scrollY - 85),
+                        behavior: 'smooth',
+                      });
+                    }
+                  }}
+                  className="hover:text-teal-400 transition-colors text-left cursor-pointer"
+                >
+                  Chirurgie de la cataracte
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => {
+                    const el = document.getElementById('services');
+                    if (el) {
+                      window.scrollTo({
+                        top: Math.max(0, el.getBoundingClientRect().top + window.scrollY - 85),
+                        behavior: 'smooth',
+                      });
+                    }
+                  }}
+                  className="hover:text-teal-400 transition-colors text-left cursor-pointer"
+                >
+                  Dépistage du glaucome
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => {
+                    const el = document.getElementById('services');
+                    if (el) {
+                      window.scrollTo({
+                        top: Math.max(0, el.getBoundingClientRect().top + window.scrollY - 85),
+                        behavior: 'smooth',
+                      });
+                    }
+                  }}
+                  className="hover:text-teal-400 transition-colors text-left cursor-pointer"
+                >
+                  Fond d'œil diabète
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => {
+                    const el = document.getElementById('urgences');
+                    if (el) {
+                      window.scrollTo({
+                        top: Math.max(0, el.getBoundingClientRect().top + window.scrollY - 85),
+                        behavior: 'smooth',
+                      });
+                    }
+                  }}
+                  className="hover:text-red-400 text-red-300 font-medium transition-colors text-left cursor-pointer"
+                >
+                  Urgences oculaires
+                </button>
+              </li>
             </ul>
           </div>
 
@@ -59,7 +134,13 @@ export const Footer: React.FC<FooterProps> = ({ onOpenAdmin }) => {
             <div className="space-y-1 text-xs">
               <p className="text-slate-300 font-semibold">{clinicConfig.operatingHours.weekday}</p>
               <p className="text-slate-300 font-semibold">{clinicConfig.operatingHours.saturday}</p>
-              <p className="text-slate-400 pt-1 font-mono">{clinicConfig.phoneDisplay}</p>
+              <a
+                href={`tel:${clinicConfig.phone.replace(/\s+/g, '')}`}
+                className="text-teal-300 hover:text-teal-200 pt-1 font-mono block font-semibold transition-colors"
+                title="Appeler le cabinet"
+              >
+                {clinicConfig.phoneDisplay}
+              </a>
               <p className="text-teal-400 text-[11px]">WhatsApp actif 7j/7 pour urgences</p>
             </div>
           </div>
