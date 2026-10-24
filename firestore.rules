@@ -1,0 +1,66 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Master Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    // Connection ping test
+    match /test/{docId} {
+      allow read, write: if true;
+    }
+
+    // 1. APPOINTMENTS (Private patient records with PII)
+    match /appointments/{appointmentId} {
+      allow read: if isValidId(appointmentId);
+
+      allow create: if isValidId(appointmentId)
+        && incoming().patientName is string
+        && incoming().patientName.size() > 0
+        && incoming().patientName.size() <= 100
+        && incoming().patientPhone is string
+        && incoming().patientPhone.size() > 0
+        && incoming().patientPhone.size() <= 30
+        && incoming().date is string
+        && incoming().timeSlot is string
+        && (incoming().status == 'pending' || incoming().status == 'confirmed');
+
+      allow update, delete: if isValidId(appointmentId);
+    }
+
+    // 2. PUBLIC SLOTS (Anonymized booking availability containing ZERO patient PII)
+    match /publicSlots/{slotId} {
+      allow read: if isValidId(slotId);
+
+      allow create, update: if isValidId(slotId)
+        && incoming().date is string
+        && incoming().timeSlot is string
+        && incoming().status in ['pending', 'confirmed', 'blocked']
+        // Explicit PII barrier: forbid patient personal data in publicSlots
+        && !('patientPhone' in incoming())
+        && !('patientName' in incoming())
+        && !('reason' in incoming());
+
+      allow delete: if isValidId(slotId);
+    }
+
+    // 3. BLOCKED SLOTS (Doctor surgery blocks or closures)
+    match /blockedSlots/{slotId} {
+      allow read, write: if isValidId(slotId);
+    }
+
+    // 4. CLINIC SETTINGS
+    match /clinicSettings/{settingId} {
+      allow read, write: if isValidId(settingId);
+    }
+  }
+}

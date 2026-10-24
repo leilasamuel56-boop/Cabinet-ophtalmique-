@@ -1,0 +1,181 @@
+{
+  "entities": {
+    "Appointment": {
+      "title": "Appointment",
+      "description": "Patient appointment booking and private medical consultation request with PII",
+      "type": "object",
+      "properties": {
+        "patientName": {
+          "type": "string",
+          "description": "Full name of the patient",
+          "maxLength": 100
+        },
+        "patientPhone": {
+          "type": "string",
+          "description": "WhatsApp or mobile telephone number of the patient",
+          "maxLength": 30
+        },
+        "appointmentType": {
+          "type": "string",
+          "description": "Identifier of the appointment service type",
+          "maxLength": 50
+        },
+        "appointmentTypeName": {
+          "type": "string",
+          "description": "Human readable name of the service",
+          "maxLength": 100
+        },
+        "date": {
+          "type": "string",
+          "description": "Date in YYYY-MM-DD format",
+          "maxLength": 10
+        },
+        "timeSlot": {
+          "type": "string",
+          "description": "Time slot in HH:MM format",
+          "maxLength": 10
+        },
+        "durationMinutes": {
+          "type": "number",
+          "description": "Duration in minutes"
+        },
+        "isFirstVisit": {
+          "type": "boolean",
+          "description": "Whether this is the first visit for this patient"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Optional medical reason or symptom details",
+          "maxLength": 500
+        },
+        "status": {
+          "type": "string",
+          "description": "Status of the appointment",
+          "enum": ["pending", "confirmed", "cancelled"]
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Creation timestamp in ISO format",
+          "maxLength": 40
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Last update timestamp in ISO format",
+          "maxLength": 40
+        }
+      },
+      "required": ["patientName", "patientPhone", "appointmentType", "date", "timeSlot", "status"]
+    },
+    "PublicSlot": {
+      "title": "PublicSlot",
+      "description": "Anonymized slot reservation containing zero PII to allow public availability checks safely",
+      "type": "object",
+      "properties": {
+        "date": {
+          "type": "string",
+          "description": "Date in YYYY-MM-DD format",
+          "maxLength": 10
+        },
+        "timeSlot": {
+          "type": "string",
+          "description": "Time slot HH:MM",
+          "maxLength": 10
+        },
+        "status": {
+          "type": "string",
+          "description": "Slot status",
+          "enum": ["pending", "confirmed", "blocked"]
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Creation timestamp in ISO format",
+          "maxLength": 40
+        }
+      },
+      "required": ["date", "timeSlot", "status"]
+    },
+    "BlockedSlot": {
+      "title": "BlockedSlot",
+      "description": "Time slots or full/half days blocked by doctor for surgeries or absences",
+      "type": "object",
+      "properties": {
+        "date": {
+          "type": "string",
+          "description": "Date in YYYY-MM-DD format",
+          "maxLength": 10
+        },
+        "timeSlot": {
+          "type": "string",
+          "description": "Time slot HH:MM or ALL_DAY, AM, PM",
+          "maxLength": 20
+        },
+        "reason": {
+          "type": "string",
+          "description": "Reason for block (e.g. bloc opératoire)",
+          "maxLength": 200
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Creation timestamp in ISO format",
+          "maxLength": 40
+        }
+      },
+      "required": ["date", "timeSlot"]
+    },
+    "ClinicSettings": {
+      "title": "ClinicSettings",
+      "description": "Doctor configurable clinic settings and access code hash",
+      "type": "object",
+      "properties": {
+        "adminPinHash": {
+          "type": "string",
+          "description": "SHA-256 hash of the 6-digit admin passcode",
+          "maxLength": 128
+        },
+        "clinicName": {
+          "type": "string",
+          "description": "Display name of the clinic",
+          "maxLength": 150
+        },
+        "phone": {
+          "type": "string",
+          "description": "Primary phone contact",
+          "maxLength": 30
+        },
+        "whatsappNumber": {
+          "type": "string",
+          "description": "WhatsApp number",
+          "maxLength": 30
+        },
+        "address": {
+          "type": "string",
+          "description": "Physical address",
+          "maxLength": 250
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Last modification date",
+          "maxLength": 40
+        }
+      }
+    }
+  },
+  "firestore": {
+    "/appointments/{appointmentId}": {
+      "schema": "Appointment",
+      "description": "Patient appointments containing private PII, only readable by authenticated admin"
+    },
+    "/publicSlots/{slotId}": {
+      "schema": "PublicSlot",
+      "description": "Publicly readable anonymized booked slots to prevent double bookings without exposing patient data"
+    },
+    "/blockedSlots/{slotId}": {
+      "schema": "BlockedSlot",
+      "description": "Doctor-blocked slots or days readable by all, managed only by admin"
+    },
+    "/clinicSettings/{settingId}": {
+      "schema": "ClinicSettings",
+      "description": "Global clinic configuration and security hash"
+    }
+  }
+}
