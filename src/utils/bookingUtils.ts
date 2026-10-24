@@ -167,7 +167,10 @@ export function createWhatsAppBookingUrl(booking: {
   reason?: string;
 }): string {
   const frenchDate = formatFrenchDate(booking.dateStr);
-  const text = `Bonjour Docteur, je souhaite confirmer mon rendez-vous :\n\n• Type : ${booking.serviceName}\n• Date : ${frenchDate}\n• Heure : ${booking.timeSlot}\n• Nom : ${booking.patientName}\n• Tél : ${booking.patientPhone}${booking.isFirstVisit ? '\n• Première visite : Oui' : ''}${booking.reason ? `\n• Motif : ${booking.reason}` : ''}\n\nMerci de me confirmer la prise en charge.`;
+  const trimmedReason = (booking.reason || '').trim();
+  const reasonLine = trimmedReason ? `\n• Motif : ${trimmedReason}` : '';
+  const firstVisitLine = booking.isFirstVisit ? '\n• Première visite : Oui' : '';
+  const text = `Bonjour Docteur, je souhaite confirmer mon rendez-vous :\n\n• Type : ${booking.serviceName}\n• Date : ${frenchDate}\n• Heure : ${booking.timeSlot}\n• Nom : ${booking.patientName}\n• Tél : ${booking.patientPhone}${firstVisitLine}${reasonLine}\n\nMerci de me confirmer la prise en charge.`;
 
   return `https://wa.me/${clinicConfig.whatsappNumber}?text=${encodeURIComponent(text)}`;
 }

@@ -30,9 +30,11 @@ service cloud.firestore {
         && incoming().patientPhone is string
         && incoming().patientPhone.size() > 0
         && incoming().patientPhone.size() <= 30
+        && incoming().appointmentType is string
         && incoming().date is string
         && incoming().timeSlot is string
-        && (incoming().status == 'pending' || incoming().status == 'confirmed');
+        && (incoming().status == 'pending' || incoming().status == 'confirmed')
+        && (!('reason' in incoming()) || (incoming().reason is string && incoming().reason.size() <= 500));
 
       allow update, delete: if isValidId(appointmentId);
     }

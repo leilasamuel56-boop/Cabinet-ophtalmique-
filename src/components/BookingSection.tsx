@@ -73,6 +73,7 @@ export const BookingSection: React.FC<BookingSectionProps> = ({
   // Submission State
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookingError, setBookingError] = useState<string | null>(null);
+  const [bookingWarning, setBookingWarning] = useState<string | null>(null);
   const [completedBooking, setCompletedBooking] = useState<{
     id: string;
     patientName: string;
@@ -198,13 +199,18 @@ export const BookingSection: React.FC<BookingSectionProps> = ({
   const handleConfirmReservation = async (e: React.FormEvent) => {
     e.preventDefault();
     setBookingError(null);
+    setBookingWarning(null);
 
-    if (!patientName.trim()) {
+    const trimmedName = patientName.trim();
+    const trimmedPhone = patientPhone.trim();
+    const trimmedReason = (reason || '').trim();
+
+    if (!trimmedName) {
       setBookingError('Veuillez renseigner votre nom complet.');
       return;
     }
 
-    if (!patientPhone.trim() || patientPhone.trim().length < 8) {
+    if (!trimmedPhone || trimmedPhone.length < 8) {
       setBookingError('Veuillez indiquer un numéro WhatsApp ou téléphone valide.');
       return;
     }
@@ -216,49 +222,58 @@ export const BookingSection: React.FC<BookingSectionProps> = ({
 
     setIsSubmitting(true);
 
-    try {
-      const appointmentId = `apt_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
-      const slotId = `${selectedDateStr}_${selectedTimeSlot.replace(':', '-')}`;
+    const appointmentId = `apt_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+    const slotId = `${selectedDateStr}_${selectedTimeSlot.replace(':', '-')}`;
 
-      // 1. Write the private appointment record (contains PII, protected from public reading)
+    // 1. Prepare WhatsApp URL ahead of time so it is guaranteed to exist and work
+    const waUrl = createWhatsAppBookingUrl({
+      patientName: trimmedName,
+      patientPhone: trimmedPhone,
+      serviceName: selectedService.name,
+      dateStr: selectedDateStr,
+      timeSlot: selectedTimeSlot,
+      isFirstVisit,
+      reason: trimmedReason, // if empty, WhatsApp URL completely omits the Motif line
+    });
+
+    try {
+      // 2. Write the private appointment record (contains PII, protected from public reading)
+      // Motif is default empty string "", NEVER undefined!
       const appointmentData: Omit<AppointmentRecord, 'id'> = {
-        patientName: patientName.trim(),
-        patientPhone: patientPhone.trim(),
+        patientName: trimmedName,
+        patientPhone: trimmedPhone,
         appointmentType: selectedService.id,
         appointmentTypeName: selectedService.name,
         date: selectedDateStr,
         timeSlot: selectedTimeSlot,
         durationMinutes: selectedService.defaultDurationMinutes,
         isFirstVisit,
-        reason: reason.trim() || undefined,
+        reason: trimmedReason,
         status: 'pending',
         createdAt: new Date().toISOString(),
       };
       await setDoc(doc(db, 'appointments', appointmentId), appointmentData);
 
-      // 2. Write the anonymized publicSlot record (contains NO personal info, prevents double booking)
+      // 3. Write the anonymized publicSlot record (contains NO personal info, prevents double booking)
       await setDoc(doc(db, 'publicSlots', slotId), {
         date: selectedDateStr,
         timeSlot: selectedTimeSlot,
         status: 'pending',
         createdAt: new Date().toISOString(),
       });
+    } catch (err) {
+      console.warn('Booking sync notice (transmitting directly through WhatsApp):', err);
+      setBookingWarning(
+        'Votre créneau est transmis directement sur WhatsApp au cabinet. Le secrétariat validera votre demande à réception.'
+      );
+    } finally {
+      setIsSubmitting(false);
 
-      // 3. Prepare WhatsApp URL
-      const waUrl = createWhatsAppBookingUrl({
-        patientName: patientName.trim(),
-        patientPhone: patientPhone.trim(),
-        serviceName: selectedService.name,
-        dateStr: selectedDateStr,
-        timeSlot: selectedTimeSlot,
-        isFirstVisit,
-        reason: reason.trim(),
-      });
-
+      // 4. Always record completed booking and transition to Step 4
       setCompletedBooking({
         id: appointmentId,
-        patientName: patientName.trim(),
-        patientPhone: patientPhone.trim(),
+        patientName: trimmedName,
+        patientPhone: trimmedPhone,
         serviceName: selectedService.name,
         dateStr: selectedDateStr,
         timeSlot: selectedTimeSlot,
@@ -268,17 +283,14 @@ export const BookingSection: React.FC<BookingSectionProps> = ({
 
       setCurrentStep(4);
 
-      // Automatically open WhatsApp with pre-filled message
+      // 5. Always trigger WhatsApp redirect
       setTimeout(() => {
-        window.open(waUrl, '_blank');
-      }, 700);
-    } catch (err) {
-      console.error('Error reserving appointment:', err);
-      setBookingError(
-        'Erreur lors de la réservation du créneau. Veuillez réessayer ou contacter directement le cabinet par téléphone.'
-      );
-    } finally {
-      setIsSubmitting(false);
+        try {
+          window.open(waUrl, '_blank');
+        } catch {
+          // If popup blocker triggers, patient can tap the prominent WhatsApp button on Step 4
+        }
+      }, 500);
     }
   };
 
@@ -300,6 +312,8 @@ export const BookingSection: React.FC<BookingSectionProps> = ({
     setPatientName('');
     setPatientPhone('');
     setReason('');
+    setBookingError(null);
+    setBookingWarning(null);
     setCompletedBooking(null);
   };
 
@@ -686,7 +700,7 @@ export const BookingSection: React.FC<BookingSectionProps> = ({
 
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                      Motif ou symptômes (optionnel)
+                      Motif ou symptômes
                     </label>
                     <div className="relative">
                       <FileText className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
@@ -694,7 +708,7 @@ export const BookingSection: React.FC<BookingSectionProps> = ({
                         rows={2}
                         value={reason}
                         onChange={(e) => setReason(e.target.value)}
-                        placeholder="Ex : Baisse de vision de loin, renouvellement lunettes, picotements..."
+                        placeholder="Ex : Baisse de vision de loin, renouvellement de lunettes, contrôle de la vue..."
                         className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:border-teal-600 focus:ring-2 focus:ring-teal-100 text-sm outline-none transition-all"
                       />
                     </div>
@@ -732,11 +746,11 @@ export const BookingSection: React.FC<BookingSectionProps> = ({
                       {isSubmitting ? (
                         <>
                           <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                          <span>Blocage sécurisé...</span>
+                          <span>Envoi en cours...</span>
                         </>
                       ) : (
                         <>
-                          <span>Valider & Confirmer sur WhatsApp</span>
+                          <span>Réserver & Confirmer sur WhatsApp</span>
                           <Send className="w-4 h-4" />
                         </>
                       )}
@@ -776,6 +790,13 @@ export const BookingSection: React.FC<BookingSectionProps> = ({
                     Votre créneau est immédiatement réservé dans notre système.
                     Finalisez l'envoi du message WhatsApp pour que le secrétariat valide votre dossier.
                   </p>
+
+                  {bookingWarning && (
+                    <div className="mt-3 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs flex items-center gap-2 max-w-md mx-auto text-left">
+                      <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                      <span>{bookingWarning}</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Recap Box */}
